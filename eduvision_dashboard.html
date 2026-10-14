@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EduVision — Atlas of Higher Education</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --parchment:#F5F0E4;
+    --paper:#FFFDF8;
+    --ink:#221D14;
+    --ink-soft:#635D4C;
+    --hairline:#E1D7BE;
+    --navy:#1B2A4A;
+    --navy-tint:#E7EBF1;
+    --plum:#5B3A73;
+    --plum-tint:#EEE7F1;
+    --teal:#1F6F5C;
+    --teal-tint:#E4EFEA;
+    --rust:#AF5426;
+    --rust-tint:#F3E7DC;
+    --gold:#A9822F;
+    --up:#2F6B3D;
+    --down:#A83232;
+    --accent: var(--navy);
+    --tint: var(--navy-tint);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--parchment);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(34,29,20,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+  }
+  ::selection{ background: var(--gold); color:#fff; }
+
+  /* ---------- SPINE / INDEX RAIL ---------- */
+  .rail{
+    width:68px;
+    flex-shrink:0;
+    background:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:26px 0;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .rail-mark{
+    width:34px; height:34px;
+    border:1.5px solid rgba(255,255,255,0.35);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    color:#fff;
+    font-size:15px;
+    margin-bottom:34px;
+    flex-shrink:0;
+  }
+  .rail-tabs{ display:flex; flex-direction:column; gap:6px; width:100%; align-items:center; flex:1; }
+  .tab{
+    position:relative;
+    width:46px;
+    padding:16px 0 14px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    color:rgba(255,255,255,0.45);
+    transition:all .25s ease;
+    border-radius:3px;
+  }
+  .tab .num{ font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:.05em; }
+  .tab .lbl{
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family:'Fraunces', serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.06em;
+  }
+  .tab .dot{ width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.5; }
+  .tab.active{ color:#fff; background:rgba(255,255,255,0.08); }
+  .tab.active::before{
+    content:"";
+    position:absolute; left:-2px; top:10%; bottom:10%; width:3px;
+    background: var(--tab-color);
+    border-radius:2px;
+  }
+  .tab:hover{ color:#fff; }
+  .tab[data-section="overview"]{ --tab-color:#7C93BF; }
+  .tab[data-section="research"]{ --tab-color:#B79ACB; }
+  .tab[data-section="student"]{ --tab-color:#6FC1AA; }
+  .tab[data-section="country"]{ --tab-color:#E2A272; }
+
+  /* ---------- MAIN ---------- */
+  main{ flex:1; min-width:0; padding:40px 48px 80px; }
+  .masthead{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    padding-bottom:22px; margin-bottom:30px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  .masthead .brandline{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.14em;
+    color:var(--ink-soft); text-transform:uppercase; margin-bottom:6px;
+  }
+  .masthead h1{
+    font-family:'Fraunces', serif; font-weight:700; font-size:34px; letter-spacing:-.01em;
+  }
+  .masthead .sub{ color:var(--ink-soft); font-size:14px; margin-top:4px; }
+  .controls{ display:flex; gap:10px; align-items:center; }
+  .pill{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px;
+    border:1px solid var(--hairline); background:var(--paper);
+    padding:7px 13px; border-radius:20px; color:var(--ink-soft);
+    display:flex; align-items:center; gap:6px;
+  }
+  .pill b{ color:var(--ink); font-weight:600; }
+
+  .eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .eyebrow .tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.1em;
+    background:var(--tint); color:var(--accent); padding:5px 11px; border-radius:3px; font-weight:600;
+  }
+  .eyebrow .desc{ color:var(--ink-soft); font-size:13.5px; }
+
+  /* ---------- STAT STRIP ---------- */
+  .stats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--hairline);
+    border:1px solid var(--hairline);
+    margin-bottom:26px;
+  }
+  .stat{ background:var(--paper); padding:20px 22px; }
+  .stat .slabel{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:10px;
+  }
+  .stat .sval{
+    font-family:'Fraunces', serif; font-weight:700; font-size:30px; color:var(--ink);
+    line-height:1;
+  }
+  .stat .sdelta{
+    margin-top:9px; font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:500;
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .sdelta.up{ color:var(--up); } .sdelta.down{ color:var(--down); }
+
+  /* ---------- GRID PANELS ---------- */
+  .grid2{ display:grid; grid-template-columns:1.15fr 1fr; gap:18px; margin-bottom:18px; }
+  .panel{
+    background:var(--paper); border:1px solid var(--hairline);
+    border-top:3px solid var(--accent);
+    padding:20px 22px 22px;
+  }
+  .panel h3{
+    font-family:'Fraunces', serif; font-size:16px; font-weight:600; margin-bottom:2px;
+  }
+  .panel .phint{ color:var(--ink-soft); font-size:12px; margin-bottom:16px; }
+
+  table.led{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.led thead th{
+    text-align:left; font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);
+    padding-bottom:8px; border-bottom:1px solid var(--hairline); font-weight:500;
+  }
+  table.led td{ padding:9px 0; border-bottom:1px dotted var(--hairline); }
+  table.led tr:last-child td{ border-bottom:none; }
+  table.led td.rank{
+    font-family:'IBM Plex Mono', monospace; color:var(--accent); font-weight:600; width:28px;
+  }
+  table.led td.num{ font-family:'IBM Plex Mono', monospace; text-align:right; color:var(--ink-soft); }
+  table.led td.name{ font-weight:600; }
+  table.led td.tiny{ color:var(--ink-soft); font-size:11.5px; }
+
+  /* donut */
+  .donutwrap{ display:flex; align-items:center; gap:24px; }
+  .donut{ width:128px; height:128px; border-radius:50%; flex-shrink:0; position:relative; }
+  .donut::after{
+    content:""; position:absolute; inset:22px; border-radius:50%; background:var(--paper);
+  }
+  .legend{ display:flex; flex-direction:column; gap:9px; flex:1; }
+  .legend .row{ display:flex; align-items:center; gap:9px; font-size:12.5px; }
+  .legend .sw{ width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+  .legend .name{ flex:1; color:var(--ink); }
+  .legend .pct{ font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:11.5px; }
+
+  /* bars */
+  .barlist{ display:flex; flex-direction:column; gap:12px; }
+  .bar-row .toprow{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; }
+  .bar-row .toprow .pct{ font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); }
+  .bar-track{ height:7px; background:var(--tint); border-radius:2px; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--accent); border-radius:2px; width:0; transition:width 1s cubic-bezier(.2,.8,.2,1); }
+
+  /* line chart */
+  svg.linechart{ width:100%; height:180px; overflow:visible; }
+  .lc-grid line{ stroke:var(--hairline); stroke-width:1; }
+  .lc-axis text{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; fill:var(--ink-soft); }
+  .lc-line{ fill:none; stroke:var(--accent); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  .lc-area{ fill:var(--accent); opacity:.08; }
+  .lc-dot{ fill:var(--paper); stroke:var(--accent); stroke-width:2.2; }
+
+  /* grouped bar (country compare) */
+  .groupwrap{ display:flex; align-items:flex-end; gap:26px; height:190px; padding:0 4px; border-bottom:1px solid var(--hairline); }
+  .country-group{ display:flex; flex-direction:column; align-items:center; flex:1; height:100%; justify-content:flex-end; }
+  .country-bars{ display:flex; gap:3px; align-items:flex-end; height:100%; }
+  .country-bars .cb{ width:9px; border-radius:2px 2px 0 0; transition:height 1s cubic-bezier(.2,.8,.2,1); height:0; }
+  .country-name{ margin-top:8px; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--ink-soft); }
+
+  .metricrow{ display:flex; gap:10px; margin-bottom:22px; flex-wrap:wrap; }
+  .metricrow .m{
+    display:flex; align-items:center; gap:8px;
+    border:1px solid var(--hairline); background:var(--paper); padding:9px 14px; border-radius:3px;
+    font-size:12.5px; font-weight:500;
+  }
+  .metricrow .m .dot{ width:8px; height:8px; border-radius:2px; }
+
+  .footnote{
+    margin-top:8px; font-size:11.5px; color:var(--ink-soft); font-style:italic;
+    border-top:1px dotted var(--hairline); padding-top:12px;
+  }
+
+  .view{ display:none; animation:fade .4s ease; }
+  .view.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  @media (max-width:900px){
+    .grid2{ grid-template-columns:1fr; }
+    .stats{ grid-template-columns:1fr 1fr; }
+    main{ padding:28px 18px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="rail">
+  <div class="rail-mark">EV</div>
+  <div class="rail-tabs">
+    <button class="tab active" data-section="overview"><span class="num">01</span><span class="lbl">Overview</span><span class="dot"></span></button>
+    <button class="tab" data-section="research"><span class="num">02</span><span class="lbl">Research</span><span class="dot"></span></button>
+    <button class="tab" data-section="student"><span class="num">03</span><span class="lbl">Students</span><span class="dot"></span></button>
+    <button class="tab" data-section="country"><span class="num">04</span><span class="lbl">Countries</span><span class="dot"></span></button>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="view active" id="view-overview" style="--accent:var(--navy); --tint:var(--navy-tint);">
+    <div class="masthead">
+      <div>
+        <div class="brandline">EduVision · Atlas of Higher Education</div>
+        <h1>University Overview</h1>
+        <div class="sub">A global census of institutions, ranked and mapped</div>
+      </div>
+      <div class="controls">
+        <div class="pill">◐ <b>Global</b></div>
+        <div class="pill">Year <b>2024</b></div>
+      </div>
+    </div>
+    <div class="eyebrow"><span class="tag">FOL. 01</span><span class="desc">21,654 institutions tracked across 190 countries</span></div>
+
+    <div class="stats">
+      <div class="stat"><div class="slabel">Total Universities</div><div class="sval" data-count="21654">0</div><div class="sdelta up">▲ 4.5% YoY</div></div>
+      <div class="stat"><div class="slabel">Total Students</div><div class="sval" data-count="25.6" data-suffix="M">0</div><div class="sdelta up">▲ 3.2% YoY</div></div>
+      <div class="stat"><div class="slabel">Research Output</div><div class="sval" data-count="2.3" data-suffix="M">0</div><div class="sdelta up">▲ 6.1% YoY</div></div>
+      <div class="stat"><div class="slabel">Avg. QS World Rank</div><div class="sval" data-count="427">0</div><div class="sdelta down">▼ 2.1% YoY</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Top Universities by QS Rank</h3>
+        <div class="phint">Leading five, worldwide</div>
+        <table class="led">
+          <thead><tr><th></th><th>University</th><th>Country</th><th style="text-align:right">Rank</th></tr></thead>
+          <tbody>
+            <tr><td class="rank">01</td><td class="name">MIT</td><td class="tiny">USA</td><td class="num">1</td></tr>
+            <tr><td class="rank">02</td><td class="name">University of Oxford</td><td class="tiny">UK</td><td class="num">2</td></tr>
+            <tr><td class="rank">03</td><td class="name">Stanford University</td><td class="tiny">USA</td><td class="num">3</td></tr>
+            <tr><td class="rank">04</td><td class="name">University of Cambridge</td><td class="tiny">UK</td><td class="num">4</td></tr>
+            <tr><td class="rank">05</td><td class="name">Harvard University</td><td class="tiny">USA</td><td class="num">5</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Universities by Region</h3>
+        <div class="phint">Share of global total</div>
+        <div class="donutwrap">
+          <div class="donut" id="donut-overview"></div>
+          <div class="legend" id="legend-overview"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Top Fields of Study</h3>
+        <div class="phint">Share of enrolment</div>
+        <div class="barlist" id="bars-overview"></div>
+      </div>
+      <div class="panel">
+        <h3>Trend — Universities Growth</h3>
+        <div class="phint">2020 – 2024</div>
+        <svg class="linechart" id="line-overview" viewBox="0 0 420 180"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESEARCH ============ -->
+  <section class="view" id="view-research" style="--accent:var(--plum); --tint:var(--plum-tint);">
+    <div class="masthead">
+      <div>
+        <div class="brandline">EduVision · Atlas of Higher Education</div>
+        <h1>Research Analytics</h1>
+        <div class="sub">Output, impact, and the papers moving the field</div>
+      </div>
+      <div class="controls">
+        <div class="pill">All <b>Fields</b></div>
+        <div class="pill">Year <b>2024</b></div>
+      </div>
+    </div>
+    <div class="eyebrow"><span class="tag">FOL. 02</span><span class="desc">2.3M papers indexed, 45.7M citations counted</span></div>
+
+    <div class="stats">
+      <div class="stat"><div class="slabel">Total Publications</div><div class="sval" data-count="2.3" data-suffix="M">0</div><div class="sdelta up">▲ 6.4% YoY</div></div>
+      <div class="stat"><div class="slabel">Citations</div><div class="sval" data-count="45.7" data-suffix="M">0</div><div class="sdelta up">▲ 7.8% YoY</div></div>
+      <div class="stat"><div class="slabel">h-index (avg.)</div><div class="sval" data-count="78">0</div><div class="sdelta up">▲ 3.3% YoY</div></div>
+      <div class="stat"><div class="slabel">Top 10% Papers</div><div class="sval" data-count="12.6" data-suffix="%">0</div><div class="sdelta up">▲ 2.1% YoY</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Publications Over Time</h3>
+        <div class="phint">2020 – 2024, millions of papers</div>
+        <svg class="linechart" id="line-research" viewBox="0 0 420 180"></svg>
+      </div>
+      <div class="panel">
+        <h3>Publications by Subject Area</h3>
+        <div class="phint">Share of output</div>
+        <div class="donutwrap">
+          <div class="donut" id="donut-research"></div>
+          <div class="legend" id="legend-research"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Top Institutions by Publications</h3>
+        <div class="phint">Volume leaders</div>
+        <table class="led">
+          <thead><tr><th></th><th>Institution</th><th style="text-align:right">Publications</th></tr></thead>
+          <tbody>
+            <tr><td class="rank">01</td><td class="name">Harvard University</td><td class="num">125,000</td></tr>
+            <tr><td class="rank">02</td><td class="name">Stanford University</td><td class="num">97,500</td></tr>
+            <tr><td class="rank">03</td><td class="name">MIT</td><td class="num">93,200</td></tr>
+            <tr><td class="rank">04</td><td class="name">University of Oxford</td><td class="num">88,600</td></tr>
+            <tr><td class="rank">05</td><td class="name">University of Cambridge</td><td class="num">76,400</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Top Cited Papers</h3>
+        <div class="phint">By citation count</div>
+        <table class="led">
+          <thead><tr><th>Paper</th><th class="tiny" style="text-align:right">Citations</th></tr></thead>
+          <tbody>
+            <tr><td><div class="name">Deep Learning for Natural Language…</div><div class="tiny">Stanford University</div></td><td class="num">25,230</td></tr>
+            <tr><td><div class="name">A Comprehensive Review of AI…</div><div class="tiny">MIT</div></td><td class="num">18,750</td></tr>
+            <tr><td><div class="name">CRISPR Gene Editing: Advances…</div><div class="tiny">Harvard University</div></td><td class="num">17,890</td></tr>
+            <tr><td><div class="name">Climate Change and Sustainable…</div><div class="tiny">University of Oxford</div></td><td class="num">15,640</td></tr>
+            <tr><td><div class="name">Nanomaterials in Energy Storage…</div><div class="tiny">University of Cambridge</div></td><td class="num">14,320</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STUDENT ============ -->
+  <section class="view" id="view-student" style="--accent:var(--teal); --tint:var(--teal-tint);">
+    <div class="masthead">
+      <div>
+        <div class="brandline">EduVision · Atlas of Higher Education</div>
+        <h1>Student Analytics</h1>
+        <div class="sub">Who is studying, at what level, and from where</div>
+      </div>
+      <div class="controls">
+        <div class="pill">All <b>Levels</b></div>
+        <div class="pill">Year <b>2024</b></div>
+      </div>
+    </div>
+    <div class="eyebrow"><span class="tag">FOL. 03</span><span class="desc">25.6M students enrolled, 6.2M studying abroad</span></div>
+
+    <div class="stats">
+      <div class="stat"><div class="slabel">Total Students</div><div class="sval" data-count="25.6" data-suffix="M">0</div><div class="sdelta up">▲ 3.2% YoY</div></div>
+      <div class="stat"><div class="slabel">International Students</div><div class="sval" data-count="6.2" data-suffix="M">0</div><div class="sdelta up">▲ 5.1% YoY</div></div>
+      <div class="stat"><div class="slabel">Female Students</div><div class="sval" data-count="46" data-suffix="%">0</div><div class="sdelta up">▲ 1.8% YoY</div></div>
+      <div class="stat"><div class="slabel">Student–Faculty Ratio</div><div class="sval">18:1</div><div class="sdelta down">▼ 0.6% YoY</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Students by Level of Study</h3>
+        <div class="phint">Share of enrolment</div>
+        <div class="donutwrap">
+          <div class="donut" id="donut-student"></div>
+          <div class="legend" id="legend-student"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>International Students Trend</h3>
+        <div class="phint">2020 – 2024, millions abroad</div>
+        <svg class="linechart" id="line-student" viewBox="0 0 420 180"></svg>
+      </div>
+    </div>
+
+    <div class="grid2" style="grid-template-columns:1fr;">
+      <div class="panel">
+        <h3>Top Countries of Origin — International Students</h3>
+        <div class="phint">Sending markets, ranked</div>
+        <div class="barlist" id="bars-student"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ COUNTRY ============ -->
+  <section class="view" id="view-country" style="--accent:var(--rust); --tint:var(--rust-tint);">
+    <div class="masthead">
+      <div>
+        <div class="brandline">EduVision · Atlas of Higher Education</div>
+        <h1>Country Comparison</h1>
+        <div class="sub">Six nations, measured against the same yardstick</div>
+      </div>
+      <div class="controls">
+        <div class="pill">4 <b>Metrics</b></div>
+        <div class="pill">Year <b>2024</b></div>
+      </div>
+    </div>
+    <div class="eyebrow"><span class="tag">FOL. 04</span><span class="desc">Indexed 0–100 against the top performer per metric</span></div>
+
+    <div class="metricrow">
+      <div class="m"><span class="dot" style="background:#1B2A4A"></span>Universities</div>
+      <div class="m"><span class="dot" style="background:#8A5CA8"></span>Research Output</div>
+      <div class="m"><span class="dot" style="background:#D6A23C"></span>Citations</div>
+      <div class="m"><span class="dot" style="background:#2F8C6E"></span>International Students</div>
+    </div>
+
+    <div class="panel" style="margin-bottom:18px;">
+      <h3>Compare Countries</h3>
+      <div class="phint">Normalized index score, by metric</div>
+      <div class="groupwrap" id="country-groups"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Country Rankings — Overall Score</h3>
+      <div class="phint">Composite of all four metrics</div>
+      <table class="led">
+        <thead><tr><th></th><th>Country</th><th style="text-align:right">Universities</th><th style="text-align:right">Research</th><th style="text-align:right">Citations</th><th style="text-align:right">Int'l Students</th><th style="text-align:right">Overall</th></tr></thead>
+        <tbody>
+          <tr><td class="rank">01</td><td class="name">USA</td><td class="num">1</td><td class="num">1</td><td class="num">1</td><td class="num">2</td><td class="num">1</td></tr>
+          <tr><td class="rank">02</td><td class="name">UK</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td class="num">3</td><td class="num">2</td></tr>
+          <tr><td class="rank">03</td><td class="name">China</td><td class="num">3</td><td class="num">1</td><td class="num">1</td><td class="num">1</td><td class="num">3</td></tr>
+          <tr><td class="rank">04</td><td class="name">Germany</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td></tr>
+          <tr><td class="rank">05</td><td class="name">India</td><td class="num">5</td><td class="num">5</td><td class="num">5</td><td class="num">2</td><td class="num">5</td></tr>
+        </tbody>
+      </table>
+      <div class="footnote">Rank 1 = strongest performer for that metric, within this six-country set.</div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ---------- tab switching ----------
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.section).classList.add('active');
+    animateCounts(document.getElementById('view-'+btn.dataset.section));
+  });
+});
+
+// ---------- animated counters ----------
+function animateCounts(scope){
+  scope.querySelectorAll('.sval[data-count]').forEach(el=>{
+    const target = parseFloat(el.dataset.count);
+    const suffix = el.dataset.suffix || '';
+    const isInt = Number.isInteger(target) && !suffix;
+    const dur = 900, start = performance.now();
+    function tick(now){
+      const p = Math.min(1,(now-start)/dur);
+      const eased = 1-Math.pow(1-p,3);
+      const val = target*eased;
+      el.textContent = (isInt ? Math.round(val).toLocaleString() : val.toFixed(target%1!==0?1:(suffix?1:0))) + suffix;
+      if(p<1) requestAnimationFrame(tick);
+      else el.textContent = (isInt ? target.toLocaleString() : (target + suffix));
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// ---------- donut builder ----------
+function buildDonut(id, legendId, data, colors){
+  const el = document.getElementById(id);
+  const legend = document.getElementById(legendId);
+  let acc = 0; const stops = [];
+  data.forEach((d,i)=>{
+    const start = acc, end = acc + d.value;
+    stops.push(`${colors[i]} ${start*3.6}deg ${end*3.6}deg`);
+    acc = end;
+  });
+  el.style.background = `conic-gradient(${stops.join(',')})`;
+  legend.innerHTML = data.map((d,i)=>`
+    <div class="row"><span class="sw" style="background:${colors[i]}"></span><span class="name">${d.label}</span><span class="pct">${d.value}%</span></div>
+  `).join('');
+}
+
+// ---------- bar list builder ----------
+function buildBars(id, data, color){
+  const el = document.getElementById(id);
+  el.innerHTML = data.map(d=>`
+    <div class="bar-row">
+      <div class="toprow"><span>${d.label}</span><span class="pct">${d.display}</span></div>
+      <div class="bar-track"><div class="bar-fill" data-w="${d.pct}" style="background:${color}"></div></div>
+    </div>
+  `).join('');
+  requestAnimationFrame(()=>{
+    el.querySelectorAll('.bar-fill').forEach(b=> b.style.width = b.dataset.w+'%');
+  });
+}
+
+// ---------- line chart builder ----------
+function buildLine(id, labels, values, color){
+  const svg = document.getElementById(id);
+  const W=420,H=180,padL=34,padR=10,padT=14,padB=26;
+  const max = Math.max(...values)*1.08, min = Math.min(...values)*0.9;
+  const x = i => padL + (i/(values.length-1))*(W-padL-padR);
+  const y = v => H-padB - ((v-min)/(max-min))*(H-padT-padB);
+  let grid='', axis='';
+  for(let g=0; g<=3; g++){
+    const gy = padT + g*((H-padT-padB)/3);
+    grid += `<line class="lc-grid" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/>`;
+  }
+  labels.forEach((l,i)=>{ axis += `<text class="lc-axis" x="${x(i)}" y="${H-6}" text-anchor="middle">${l}</text>`; });
+  const pts = values.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+  const area = `${padL},${H-padB} ${pts} ${W-padR},${H-padB}`;
+  const dots = values.map((v,i)=>`<circle class="lc-dot" cx="${x(i)}" cy="${y(v)}" r="3.5"/>`).join('');
+  svg.innerHTML = `${grid}<polygon class="lc-area" points="${area}"/><polyline class="lc-line" points="${pts}"/>${dots}${axis}`;
+  svg.style.setProperty('--stroke', color);
+}
+
+// ---------- OVERVIEW data ----------
+buildDonut('donut-overview','legend-overview',
+  [{label:'Asia',value:35},{label:'Europe',value:30},{label:'North America',value:20},{label:'South America',value:10},{label:'Africa',value:5}],
+  ['#1B2A4A','#3E5A8C','#7C93BF','#B7C4DC','#DCE3EF']);
+buildBars('bars-overview',[
+  {label:'Engineering', pct:25, display:'25%'},
+  {label:'Medicine', pct:18, display:'18%'},
+  {label:'Computer Science', pct:15, display:'15%'},
+  {label:'Social Sciences', pct:12, display:'12%'},
+  {label:'Natural Sciences', pct:10, display:'10%'},
+], '#1B2A4A');
+buildLine('line-overview',['2020','2021','2022','2023','2024'],[18.5,19.7,20.6,21.2,21.65],'#1B2A4A');
+
+// ---------- RESEARCH data ----------
+buildLine('line-research',['2020','2021','2022','2023','2024'],[0.95,1.35,1.75,2.05,2.3],'#5B3A73');
+buildDonut('donut-research','legend-research',
+  [{label:'Engineering',value:30},{label:'Medicine',value:20},{label:'Computer Science',value:18},{label:'Natural Sciences',value:17},{label:'Social Sciences',value:10},{label:'Others',value:5}],
+  ['#5B3A73','#7A5498','#9C7AB3','#BFA3CD','#DACBE3','#EEE7F1']);
+
+// ---------- STUDENT data ----------
+buildDonut('donut-student','legend-student',
+  [{label:'Undergraduate',value:60},{label:'Postgraduate',value:30},{label:'PhD',value:10}],
+  ['#1F6F5C','#5C9C8B','#A9CFC2']);
+buildLine('line-student',['2020','2021','2022','2023','2024'],[4.1,4.6,5.2,5.7,6.2],'#1F6F5C');
+buildBars('bars-student',[
+  {label:'India', pct:100, display:'1.2M'},
+  {label:'China', pct:91.6, display:'1.1M'},
+  {label:'USA', pct:66.6, display:'800K'},
+  {label:'Indonesia', pct:33.3, display:'400K'},
+  {label:'Brazil', pct:25, display:'300K'},
+], '#1F6F5C');
+
+// ---------- COUNTRY data ----------
+const countryData = [
+  {name:'USA', vals:[92,100,100,72]},
+  {name:'UK', vals:[78,82,84,66]},
+  {name:'China', vals:[100,96,90,58]},
+  {name:'Germany', vals:[70,64,60,50]},
+  {name:'India', vals:[52,44,40,74]},
+  {name:'Australia', vals:[46,50,52,88]},
+];
+const cColors = ['#1B2A4A','#8A5CA8','#D6A23C','#2F8C6E'];
+const groupsEl = document.getElementById('country-groups');
+groupsEl.innerHTML = countryData.map(c=>`
+  <div class="country-group">
+    <div class="country-bars">
+      ${c.vals.map((v,i)=>`<div class="cb" data-h="${v}" style="background:${cColors[i]}"></div>`).join('')}
+    </div>
+    <div class="country-name">${c.name}</div>
+  </div>
+`).join('');
+requestAnimationFrame(()=>{
+  groupsEl.querySelectorAll('.cb').forEach(b=> b.style.height = b.dataset.h+'%');
+});
+
+// init
+animateCounts(document.getElementById('view-overview'));
+</script>
+</body>
+</html>
